@@ -1,4 +1,4 @@
-import React from 'react'
+import React,{useState,useEffect} from 'react'
 import Styles from './Main.module.css'
 import { BsSun } from "react-icons/bs";
 import { SiStackblitz } from "react-icons/si";
@@ -10,6 +10,37 @@ import { FiSidebar } from "react-icons/fi";
 import {FiMessageSquare } from 'react-icons/fi'
 
 const Chatgpt = () => {
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [searchResults, setSearchResults] = React.useState([]);
+
+  const API_KEY = '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'; 
+  const MODEL = 'gpt-3.5-turbo';
+  const handleSearch = async () => {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [{ role: 'system', content: 'You are a helpful assistant.' }, { role: 'user', content: searchQuery }]
+        })
+      });
+      const data = await response.json();
+  
+      if (data.choices && data.choices.length > 0) {
+        setSearchResults(data.choices);
+      } else {
+        console.error("API response does not contain valid choices:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+    }
+  };
+
+  
   return (
     <>
     <article className={Styles.main}> 
@@ -155,16 +186,27 @@ const Chatgpt = () => {
    <footer className={Styles.footerMain}>
    <section className={Styles.sectionfirst}>
           <div className={Styles.searchBar}>
-            <input
+          <input
               type="text"
               placeholder="Send a Message"
-              className={Styles.textField} 
-          
-               
-            />{" "}
-            <span className={Styles.icongrid}><IoMdSend style={{color:'green'}} /></span>
+              className={Styles.textField}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <span className={Styles.icongrid}><IoMdSend style={{color:'green',cursor:'pointer'}} onClick={handleSearch} /></span>
           </div>
-          
+          <div>
+      {searchResults.length > 0 && (
+        <div>
+          {searchResults.map((result) => (
+            <div key={result.id}>
+              <a href={result.url}>{result.title}</a>
+              <p>{result.description}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
           {/* <div  className={Styles.research}> */}
                       <p className={Styles.research}>Free Research Preview. ChatGPT may produce inaccurate information about people, places, or facts. <a href="#" style={{color:'#1b1c1d'}}>ChatGPT August 3 Version</a></p>
 
